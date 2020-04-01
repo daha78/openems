@@ -149,11 +149,15 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 						if (this.modelTypes.contains(SunSpecModelType.getModelType(blockId))) {
 
 							// Is this SunSpecModel block supported?
-							SunSpecModel sunSpecModel = null;
+							ISunSpecModel sunSpecModel = null;
 							try {
-								sunSpecModel = SunSpecModel.valueOf("S_" + blockId);
+								sunSpecModel = this.getSunSpecModel(blockId);
 							} catch (IllegalArgumentException e) {
-								// checked later
+								try {
+									sunSpecModel = SunSpecModel.valueOf("S_" + blockId);
+								} catch (IllegalArgumentException e2) {
+									// checked later
+								}
 							}
 
 							// Read block
@@ -180,7 +184,17 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 					});
 				});
 		return finished;
+	}
 
+	/**
+	 * Overwrite to provide custom SunSpecModel.
+	 * 
+	 * @param blockId the Block-Id
+	 * @return the {@link ISunSpecModel}
+	 * @throws IllegalArgumentException on error
+	 */
+	protected ISunSpecModel getSunSpecModel(int blockId) throws IllegalArgumentException {
+		return null;
 	}
 
 	/**
@@ -223,15 +237,15 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 	 * @param model        the SunSpecModel
 	 * @return future that gets completed when the Block elements are read
 	 */
-	private CompletableFuture<Void> addBlock(int startAddress, SunSpecModel model) {
-		this.logInfo(this.log, "Adding SunSpec-Model [" + model.name().substring(2) + ":" + model.label
+	private CompletableFuture<Void> addBlock(int startAddress, ISunSpecModel model) {
+		this.logInfo(this.log, "Adding SunSpec-Model [" + model.name().substring(2) + ":" + model.label()
 				+ "] starting at [" + startAddress + "]");
 
 		final CompletableFuture<Void> finished = new CompletableFuture<Void>();
-		AbstractModbusElement<?>[] elements = new AbstractModbusElement[model.points.length];
+		AbstractModbusElement<?>[] elements = new AbstractModbusElement[model.points().length];
 		startAddress += 2;
-		for (int i = 0; i < model.points.length; i++) {
-			SunSpecPoint point = model.points[i];
+		for (int i = 0; i < model.points().length; i++) {
+			SunSpecPoint point = model.points()[i];
 			AbstractModbusElement<?> element = point.get().generateModbusElement(startAddress);
 			startAddress += element.getLength();
 			elements[i] = element;
@@ -246,7 +260,7 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 			 * -> ignore non-defined SunSpec points with DummyElement
 			 */
 			for (int i = 0; i < values.size(); i++) {
-				SunSpecPoint point = model.points[i];
+				SunSpecPoint point = model.points()[i];
 				Object value = values.get(i);
 				AbstractModbusElement<?> element = elements[i];
 
@@ -260,7 +274,7 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 						// - find the ScaleFactor-Point
 						String scaleFactorName = SunSpecCodeGenerator.toUpperUnderscore(point.get().scaleFactor.get());
 						SunSpecPoint scaleFactorPoint = null;
-						for (SunSpecPoint sfPoint : model.points) {
+						for (SunSpecPoint sfPoint : model.points()) {
 							if (sfPoint.name().equals(scaleFactorName)) {
 								scaleFactorPoint = sfPoint;
 								continue;

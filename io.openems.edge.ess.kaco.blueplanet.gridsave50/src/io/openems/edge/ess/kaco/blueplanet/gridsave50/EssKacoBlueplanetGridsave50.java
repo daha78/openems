@@ -626,27 +626,7 @@ public class EssKacoBlueplanetGridsave50 extends AbstractOpenemsModbusComponent
 	@Override
 	protected ModbusProtocol defineModbusProtocol() {
 		return new ModbusProtocol(this, //
-				new FC3ReadRegistersTask(SUNSPEC_103 + 24, Priority.LOW, //
-						m(EssKacoBlueplanetGridsave50.ChannelId.AC_ENERGY,
-								new UnsignedDoublewordElement(SUNSPEC_103 + 24)),
-						m(EssKacoBlueplanetGridsave50.ChannelId.AC_ENERGY_SF, new SignedWordElement(SUNSPEC_103 + 26)), //
-						m(EssKacoBlueplanetGridsave50.ChannelId.DC_CURRENT, new UnsignedWordElement(SUNSPEC_103 + 27),
-								ElementToChannelConverter.SCALE_FACTOR_1),
-						m(EssKacoBlueplanetGridsave50.ChannelId.DC_CURRENT_SF, new SignedWordElement(SUNSPEC_103 + 28)),
-						m(EssKacoBlueplanetGridsave50.ChannelId.DC_VOLTAGE, new UnsignedWordElement(SUNSPEC_103 + 29),
-								ElementToChannelConverter.SCALE_FACTOR_MINUS_1),
-						m(EssKacoBlueplanetGridsave50.ChannelId.DC_VOLTAGE_SF, new SignedWordElement(SUNSPEC_103 + 30)),
-						m(EssKacoBlueplanetGridsave50.ChannelId.DC_POWER, new SignedWordElement(SUNSPEC_103 + 31),
-								ElementToChannelConverter.SCALE_FACTOR_1),
-						m(EssKacoBlueplanetGridsave50.ChannelId.DC_POWER_SF, new SignedWordElement(SUNSPEC_103 + 32))), //
-				new FC3ReadRegistersTask(SUNSPEC_103 + 39, Priority.LOW, //
-						m(EssKacoBlueplanetGridsave50.ChannelId.VENDOR_OPERATING_STATE,
-								new SignedWordElement(SUNSPEC_103 + 39))), //
-				new FC3ReadRegistersTask(SUNSPEC_64201 + 35, Priority.HIGH,
-						m(SymmetricEss.ChannelId.ACTIVE_POWER, new SignedWordElement(SUNSPEC_64201 + 35),
-								ElementToChannelConverter.SCALE_FACTOR_1), //
-						m(SymmetricEss.ChannelId.REACTIVE_POWER, new SignedWordElement(SUNSPEC_64201 + 36),
-								ElementToChannelConverter.SCALE_FACTOR_1)), //
+
 				new FC3ReadRegistersTask(SUNSPEC_121 + 2, Priority.LOW,
 						m(EssKacoBlueplanetGridsave50.ChannelId.W_MAX, new UnsignedWordElement(SUNSPEC_121 + 2)), //
 						new DummyRegisterElement(SUNSPEC_121 + 3, SUNSPEC_121 + 21), //

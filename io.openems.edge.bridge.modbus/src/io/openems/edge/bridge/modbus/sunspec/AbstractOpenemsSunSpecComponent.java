@@ -1,11 +1,10 @@
 package io.openems.edge.bridge.modbus.sunspec;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,7 +36,8 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 
 	private final Logger log = LoggerFactory.getLogger(AbstractOpenemsSunSpecComponent.class);
 
-	private final Set<SunSpecModelType> modelTypes;
+	// The active SunSpec-Models and their reading-priority
+	private final Map<ISunSpecModel, Priority> activeModels;
 	private final ModbusProtocol modbusProtocol;
 
 	private int readFromCommonBlockNo = 1;
@@ -48,18 +48,19 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 	/**
 	 * Constructs a AbstractOpenemsSunSpecComponent.
 	 * 
-	 * @param modelTypes               the SunSpec {@link SunSpecModelType}s that
-	 *                                 should be considered
+	 * @param activeModels             the active SunSpec Models (i.e.
+	 *                                 {@link SunSpecModel}) that should be
+	 *                                 considered and their reading-priority
 	 * @param firstInitialChannelIds   forwarded to
 	 *                                 {@link AbstractOpenemsModbusComponent}
 	 * @param furtherInitialChannelIds forwarded to
 	 *                                 {@link AbstractOpenemsModbusComponent}
 	 */
-	public AbstractOpenemsSunSpecComponent(SunSpecModelType[] modelTypes,
+	public AbstractOpenemsSunSpecComponent(Map<ISunSpecModel, Priority> activeModels,
 			io.openems.edge.common.channel.ChannelId[] firstInitialChannelIds,
 			io.openems.edge.common.channel.ChannelId[]... furtherInitialChannelIds) {
 		super(firstInitialChannelIds, furtherInitialChannelIds);
-		this.modelTypes = new HashSet<SunSpecModelType>(Arrays.asList(modelTypes));
+		this.activeModels = activeModels;
 		this.modbusProtocol = new ModbusProtocol(this);
 	}
 
@@ -145,24 +146,15 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 
 					} else {
 
-						// Should the ModelType of this Block be considered?
-						if (this.modelTypes.contains(SunSpecModelType.getModelType(blockId))) {
-
-							// Is this SunSpecModel block supported?
-							ISunSpecModel sunSpecModel = null;
-							try {
-								sunSpecModel = this.getSunSpecModel(blockId);
-							} catch (IllegalArgumentException e) {
-								try {
-									sunSpecModel = SunSpecModel.valueOf("S_" + blockId);
-								} catch (IllegalArgumentException e2) {
-									// checked later
-								}
-							}
+						// Should this Block be considered?
+						Entry<ISunSpecModel, Priority> activeEntry = this.getActiveModelForId(blockId);
+						if (activeEntry != null) {
+							ISunSpecModel sunSpecModel = activeEntry.getKey();
+							Priority priority = activeEntry.getValue();
 
 							// Read block
 							if (sunSpecModel != null) {
-								readBlockFuture = this.addBlock(startAddress, sunSpecModel);
+								readBlockFuture = this.addBlock(startAddress, sunSpecModel, priority);
 							} else {
 								this.addUnknownBlock(startAddress, blockId);
 								readBlockFuture = CompletableFuture.completedFuture(null);
@@ -184,6 +176,22 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 					});
 				});
 		return finished;
+	}
+
+	/**
+	 * Gets the Model and its reading priority; or null if the Model is not
+	 * 'active', i.e. not used by this implementation.
+	 * 
+	 * @param blockId the SunSpec Block-ID
+	 * @return the entry with Model and priority
+	 */
+	private Entry<ISunSpecModel, Priority> getActiveModelForId(int blockId) {
+		for (Entry<ISunSpecModel, Priority> entry : this.activeModels.entrySet()) {
+			if (entry.getKey().getBlockId() == blockId) {
+				return entry;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -235,9 +243,10 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 	 * 
 	 * @param startAddress the address to start reading from
 	 * @param model        the SunSpecModel
+	 * @param priority     the reading priority
 	 * @return future that gets completed when the Block elements are read
 	 */
-	private CompletableFuture<Void> addBlock(int startAddress, ISunSpecModel model) {
+	private CompletableFuture<Void> addBlock(int startAddress, ISunSpecModel model, Priority priority) {
 		this.logInfo(this.log, "Adding SunSpec-Model [" + model.name().substring(2) + ":" + model.label()
 				+ "] starting at [" + startAddress + "]");
 
@@ -316,7 +325,7 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 							element.getStartAddress() + point.get().type.length - 1);
 				}
 			}
-			final Task readTask = new FC3ReadRegistersTask(elements[0].getStartAddress(), Priority.HIGH, elements);
+			final Task readTask = new FC3ReadRegistersTask(elements[0].getStartAddress(), priority, elements);
 			this.modbusProtocol.addTask(readTask);
 
 			finished.complete(null);

@@ -1,5 +1,7 @@
 package io.openems.edge.batteryinverter.sunspec;
 
+import java.util.Map;
+
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Deactivate;
@@ -9,18 +11,19 @@ import org.slf4j.LoggerFactory;
 import io.openems.edge.batteryinverter.api.ManagedSymmetricBatteryInverter;
 import io.openems.edge.batteryinverter.api.SymmetricBatteryInverter;
 import io.openems.edge.bridge.modbus.sunspec.AbstractOpenemsSunSpecComponent;
-import io.openems.edge.bridge.modbus.sunspec.SunSpecModelType;
+import io.openems.edge.bridge.modbus.sunspec.ISunSpecModel;
 import io.openems.edge.common.component.OpenemsComponent;
+import io.openems.edge.common.taskmanager.Priority;
 
 public abstract class AbstractSunSpecBatteryInverter extends AbstractOpenemsSunSpecComponent
 		implements ManagedSymmetricBatteryInverter, SymmetricBatteryInverter, OpenemsComponent {
 
 	private final Logger log = LoggerFactory.getLogger(AbstractSunSpecBatteryInverter.class);
 
-	public AbstractSunSpecBatteryInverter(SunSpecModelType[] modelTypes,
+	public AbstractSunSpecBatteryInverter(Map<ISunSpecModel, Priority> activeModels,
 			io.openems.edge.common.channel.ChannelId[] firstInitialChannelIds,
 			io.openems.edge.common.channel.ChannelId[]... furtherInitialChannelIds) {
-		super(modelTypes, firstInitialChannelIds, furtherInitialChannelIds);
+		super(activeModels, firstInitialChannelIds, furtherInitialChannelIds);
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package io.openems.edge.pvinverter.sunspec;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -10,16 +11,19 @@ import org.osgi.service.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
 import io.openems.edge.bridge.modbus.api.ElementToChannelConverter;
 import io.openems.edge.bridge.modbus.sunspec.AbstractOpenemsSunSpecComponent;
+import io.openems.edge.bridge.modbus.sunspec.ISunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecModel;
-import io.openems.edge.bridge.modbus.sunspec.SunSpecModelType;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecPoint;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
+import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.meter.api.MeterType;
 import io.openems.edge.meter.api.SymmetricMeter;
 import io.openems.edge.pvinverter.api.ManagedSymmetricPvInverter;
@@ -27,16 +31,31 @@ import io.openems.edge.pvinverter.api.ManagedSymmetricPvInverter;
 public abstract class AbstractSunSpecPvInverter extends AbstractOpenemsSunSpecComponent
 		implements ManagedSymmetricPvInverter, SymmetricMeter, OpenemsComponent, EventHandler {
 
-	private static final SunSpecModelType[] MODEL_TYPES = { //
-			SunSpecModelType.COMMON, SunSpecModelType.INVERTER //
-	};
+	private static final Map<ISunSpecModel, Priority> ACTIVE_MODELS = ImmutableMap.<ISunSpecModel, Priority>builder()
+			.put(SunSpecModel.S_1, Priority.LOW) //
+			.put(SunSpecModel.S_101, Priority.LOW) //
+			.put(SunSpecModel.S_102, Priority.LOW) //
+			.put(SunSpecModel.S_103, Priority.LOW) //
+			.put(SunSpecModel.S_111, Priority.LOW) //
+			.put(SunSpecModel.S_112, Priority.LOW) //
+			.put(SunSpecModel.S_113, Priority.LOW) //
+			.put(SunSpecModel.S_120, Priority.LOW) //
+			.put(SunSpecModel.S_121, Priority.LOW) //
+			.put(SunSpecModel.S_122, Priority.LOW) //
+			.put(SunSpecModel.S_123, Priority.LOW) //
+			.put(SunSpecModel.S_124, Priority.LOW) //
+			.put(SunSpecModel.S_125, Priority.LOW) //
+			.put(SunSpecModel.S_127, Priority.LOW) //
+			.put(SunSpecModel.S_128, Priority.LOW) //
+			.put(SunSpecModel.S_145, Priority.LOW) //
+			.build();
 
 	private final Logger log = LoggerFactory.getLogger(AbstractSunSpecPvInverter.class);
 	private final SetPvLimitHandler setPvLimitHandler = new SetPvLimitHandler(this);
 
 	public AbstractSunSpecPvInverter() {
 		super(//
-				MODEL_TYPES, //
+				ACTIVE_MODELS, //
 				OpenemsComponent.ChannelId.values(), //
 				SymmetricMeter.ChannelId.values(), //
 				ManagedSymmetricPvInverter.ChannelId.values(), //

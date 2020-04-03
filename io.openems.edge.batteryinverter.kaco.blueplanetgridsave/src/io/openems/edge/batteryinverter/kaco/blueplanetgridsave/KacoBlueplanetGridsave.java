@@ -1,5 +1,7 @@
 package io.openems.edge.batteryinverter.kaco.blueplanetgridsave;
 
+import java.util.Map;
+
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -14,6 +16,8 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.batteryinverter.api.ManagedSymmetricBatteryInverter;
 import io.openems.edge.batteryinverter.api.SymmetricBatteryInverter;
@@ -22,9 +26,9 @@ import io.openems.edge.bridge.modbus.api.BridgeModbus;
 import io.openems.edge.bridge.modbus.api.ElementToChannelConverter;
 import io.openems.edge.bridge.modbus.sunspec.ISunSpecModel;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecModel;
-import io.openems.edge.bridge.modbus.sunspec.SunSpecModelType;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.sum.GridMode;
+import io.openems.edge.common.taskmanager.Priority;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(//
@@ -37,9 +41,31 @@ public class KacoBlueplanetGridsave extends AbstractSunSpecBatteryInverter
 
 	private final static int UNIT_ID = 1;
 	private final static int READ_FROM_MODBUS_BLOCK = 1;
-	private static final SunSpecModelType[] MODEL_TYPES = { //
-			SunSpecModelType.COMMON, SunSpecModelType.INVERTER, SunSpecModelType.VENDOR_SPECIFIC //
-	};
+
+	/**
+	 * Active SunSpec models for KACO blueplanet gridsave. Commented models are
+	 * available but not used currently.
+	 */
+	private static final Map<ISunSpecModel, Priority> ACTIVE_MODELS = ImmutableMap.<ISunSpecModel, Priority>builder()
+			.put(SunSpecModel.S_1, Priority.LOW) //
+			// .put(SunSpecModel.S_103, Priority.LOW) //
+			// .put(SunSpecModel.S_113, Priority.LOW) //
+			// .put(SunSpecModel.S_120, Priority.LOW) //
+			// .put(SunSpecModel.S_121, Priority.LOW) //
+			// .put(SunSpecModel.S_122, Priority.LOW) //
+			// .put(SunSpecModel.S_123, Priority.LOW) //
+			// .put(SunSpecModel.S_126, Priority.LOW) //
+			// .put(SunSpecModel.S_129, Priority.LOW) //
+			// .put(SunSpecModel.S_130, Priority.LOW) //
+			// .put(SunSpecModel.S_132, Priority.LOW) //
+			// .put(SunSpecModel.S_135, Priority.LOW) //
+			// .put(SunSpecModel.S_136, Priority.LOW) //
+			// .put(SunSpecModel.S_160, Priority.LOW) //
+			.put(KacoSunSpecModel.S_64201, Priority.LOW) //
+			.put(KacoSunSpecModel.S_64202, Priority.LOW) //
+			.put(KacoSunSpecModel.S_64203, Priority.LOW) //
+			.put(KacoSunSpecModel.S_64204, Priority.LOW) //
+			.build();
 
 	private final Logger log = LoggerFactory.getLogger(KacoBlueplanetGridsave.class);
 
@@ -48,7 +74,7 @@ public class KacoBlueplanetGridsave extends AbstractSunSpecBatteryInverter
 
 	public KacoBlueplanetGridsave() {
 		super(//
-				MODEL_TYPES, //
+				ACTIVE_MODELS, //
 				OpenemsComponent.ChannelId.values(), //
 				SymmetricBatteryInverter.ChannelId.values(), //
 				ManagedSymmetricBatteryInverter.ChannelId.values(), //

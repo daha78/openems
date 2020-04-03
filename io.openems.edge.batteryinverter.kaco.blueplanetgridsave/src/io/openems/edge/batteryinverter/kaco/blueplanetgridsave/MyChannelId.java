@@ -1,7 +1,5 @@
 package io.openems.edge.batteryinverter.kaco.blueplanetgridsave;
 
-import io.openems.common.channel.Unit;
-import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.Doc;
 
 public enum MyChannelId implements io.openems.edge.common.channel.ChannelId {
@@ -14,10 +12,7 @@ public enum MyChannelId implements io.openems.edge.common.channel.ChannelId {
 	 */
 	// see error codes in user manual "10.10 Troubleshooting" (page 48)
 	VENDOR_OPERATING_STATE(Doc.of(ErrorCode.values())),
-	
-	
-	
-	
+
 //	W_MAX(Doc.of(OpenemsType.INTEGER) //
 //			.unit(Unit.WATT)), //
 //	AC_ENERGY(Doc.of(OpenemsType.LONG) //

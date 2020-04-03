@@ -1,5 +1,7 @@
 package io.openems.edge.solaredge.gridmeter;
 
+import java.util.Map;
+
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -15,9 +17,14 @@ import org.osgi.service.metatype.annotations.Designate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+
 import io.openems.edge.bridge.modbus.api.BridgeModbus;
+import io.openems.edge.bridge.modbus.sunspec.ISunSpecModel;
+import io.openems.edge.bridge.modbus.sunspec.SunSpecModel;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
+import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.meter.api.AsymmetricMeter;
 import io.openems.edge.meter.api.MeterType;
 import io.openems.edge.meter.api.SymmetricMeter;
@@ -35,12 +42,24 @@ import io.openems.edge.meter.sunspec.AbstractSunSpecMeter;
 public class SolarEdgeGridMeter extends AbstractSunSpecMeter
 		implements AsymmetricMeter, SymmetricMeter, OpenemsComponent {
 
+	private static final Map<ISunSpecModel, Priority> ACTIVE_MODELS = ImmutableMap.<ISunSpecModel, Priority>builder()
+			.put(SunSpecModel.S_1, Priority.LOW) //
+			.put(SunSpecModel.S_201, Priority.LOW) //
+			.put(SunSpecModel.S_202, Priority.LOW) //
+			.put(SunSpecModel.S_203, Priority.LOW) //
+			.put(SunSpecModel.S_204, Priority.LOW) //
+			.build();
+
 	private final static int UNIT_ID = 1;
 	private final static int READ_FROM_MODBUS_BLOCK = 2;
 
 	private final Logger log = LoggerFactory.getLogger(SolarEdgeGridMeter.class);
 
 	private Config config;
+
+	public SolarEdgeGridMeter() {
+		super(ACTIVE_MODELS);
+	}
 
 	@Reference
 	protected ConfigurationAdmin cm;

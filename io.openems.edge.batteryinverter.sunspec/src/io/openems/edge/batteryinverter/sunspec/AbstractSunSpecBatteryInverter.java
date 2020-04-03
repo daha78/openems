@@ -1,20 +1,15 @@
 package io.openems.edge.batteryinverter.sunspec;
 
-import java.util.Optional;
-
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.openems.common.exceptions.OpenemsException;
 import io.openems.edge.batteryinverter.api.ManagedSymmetricBatteryInverter;
 import io.openems.edge.batteryinverter.api.SymmetricBatteryInverter;
 import io.openems.edge.bridge.modbus.sunspec.AbstractOpenemsSunSpecComponent;
 import io.openems.edge.bridge.modbus.sunspec.SunSpecModelType;
-import io.openems.edge.bridge.modbus.sunspec.SunSpecPoint;
-import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.component.OpenemsComponent;
 
 public abstract class AbstractSunSpecBatteryInverter extends AbstractOpenemsSunSpecComponent
@@ -91,15 +86,5 @@ public abstract class AbstractSunSpecBatteryInverter extends AbstractOpenemsSunS
 //				ManagedSymmetricPvInverter.ChannelId.MAX_APPARENT_POWER, //
 //				ElementToChannelConverter.DIRECT_1_TO_1, //
 //				SunSpecModel.S120.W_RTG);
-	}
-
-	@Override
-	protected <T extends Channel<?>> Optional<T> getSunSpecChannel(SunSpecPoint point) {
-		return super.getSunSpecChannel(point);
-	}
-
-	@Override
-	protected <T extends Channel<?>> T getSunSpecChannelOrError(SunSpecPoint point) throws OpenemsException {
-		return super.getSunSpecChannelOrError(point);
 	}
 }

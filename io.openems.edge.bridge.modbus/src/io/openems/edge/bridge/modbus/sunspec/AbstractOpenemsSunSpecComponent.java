@@ -153,15 +153,12 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 							Priority priority = activeEntry.getValue();
 
 							// Read block
-							if (sunSpecModel != null) {
-								readBlockFuture = this.addBlock(startAddress, sunSpecModel, priority);
-							} else {
-								this.addUnknownBlock(startAddress, blockId);
-								readBlockFuture = CompletableFuture.completedFuture(null);
-							}
+							readBlockFuture = this.addBlock(startAddress, sunSpecModel, priority);
 
 						} else {
-							// This block is not considered, because the ModelType is ignored
+							// This block is not considered, because the Model is not active
+							this.logInfo(this.log,
+									"Ignoring SunSpec-Model [" + blockId + "] starting at [" + startAddress + "]");
 							readBlockFuture = CompletableFuture.completedFuture(null);
 						}
 					}
@@ -206,18 +203,6 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 	}
 
 	/**
-	 * Adds a SunSpec block/model that cannot be handled automatically.
-	 * 
-	 * <p>
-	 * The purpose of this method is to add one or more tasks (using
-	 * this.modbusProtocol.addTask(task)) and map the elements to Channels.
-	 * 
-	 * @param startAddress   the startAddress of the block
-	 * @param sunSpecBlockId the SunSpec block/model-ID
-	 */
-	protected abstract void addUnknownBlock(int startAddress, int sunSpecBlockId);
-
-	/**
 	 * Is the SunSpec initialization completed?.
 	 * 
 	 * <p>
@@ -247,8 +232,8 @@ public abstract class AbstractOpenemsSunSpecComponent extends AbstractOpenemsMod
 	 * @return future that gets completed when the Block elements are read
 	 */
 	private CompletableFuture<Void> addBlock(int startAddress, ISunSpecModel model, Priority priority) {
-		this.logInfo(this.log, "Adding SunSpec-Model [" + model.name().substring(2) + ":" + model.label()
-				+ "] starting at [" + startAddress + "]");
+		this.logInfo(this.log, "Adding SunSpec-Model [" + model.getBlockId() + ":" + model.label() + "] starting at ["
+				+ startAddress + "]");
 
 		final CompletableFuture<Void> finished = new CompletableFuture<Void>();
 		AbstractModbusElement<?>[] elements = new AbstractModbusElement[model.points().length];

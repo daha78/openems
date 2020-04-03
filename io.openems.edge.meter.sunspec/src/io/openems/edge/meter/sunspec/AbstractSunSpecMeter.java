@@ -26,14 +26,10 @@ public abstract class AbstractSunSpecMeter extends AbstractOpenemsSunSpecCompone
 
 	private final Logger log = LoggerFactory.getLogger(AbstractSunSpecMeter.class);
 
-	public AbstractSunSpecMeter(Map<ISunSpecModel, Priority> activeModels) {
-		super(//
-				activeModels, //
-				OpenemsComponent.ChannelId.values(), //
-				SymmetricMeter.ChannelId.values(), //
-				AsymmetricMeter.ChannelId.values(), //
-				MeterChannelId.values() //
-		);
+	public AbstractSunSpecMeter(Map<ISunSpecModel, Priority> activeModels,
+			io.openems.edge.common.channel.ChannelId[] firstInitialChannelIds,
+			io.openems.edge.common.channel.ChannelId[]... furtherInitialChannelIds) {
+		super(activeModels, firstInitialChannelIds, furtherInitialChannelIds);
 	}
 
 	/**

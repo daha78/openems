@@ -182,11 +182,6 @@ public class KacoBlueplanetGridsave extends AbstractSunSpecBatteryInverter
 		return KacoSunSpecModel.valueOf("S_" + blockId);
 	}
 
-	@Override
-	protected void addUnknownBlock(int startAddress, int sunSpecBlockId) {
-		this.logInfo(this.log, "SunSpec-Model [" + sunSpecBlockId + "] is not handled. start: " + startAddress);
-	}
-
 //	/**
 //	 * Adds SunSpec block "Bidirectional inverter control backend".
 //	 * 

@@ -14,8 +14,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ReferencePolicyOption;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.metatype.annotations.Designate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -53,12 +51,15 @@ public class SolarEdgeGridMeter extends AbstractSunSpecMeter
 	private final static int UNIT_ID = 1;
 	private final static int READ_FROM_MODBUS_BLOCK = 2;
 
-	private final Logger log = LoggerFactory.getLogger(SolarEdgeGridMeter.class);
-
 	private Config config;
 
 	public SolarEdgeGridMeter() {
-		super(ACTIVE_MODELS);
+		super(//
+				ACTIVE_MODELS, //
+				OpenemsComponent.ChannelId.values(), //
+				SymmetricMeter.ChannelId.values(), //
+				AsymmetricMeter.ChannelId.values() //
+		);
 	}
 
 	@Reference
@@ -79,11 +80,6 @@ public class SolarEdgeGridMeter extends AbstractSunSpecMeter
 	@Deactivate
 	protected void deactivate() {
 		super.deactivate();
-	}
-
-	@Override
-	protected void addUnknownBlock(int startAddress, int sunSpecBlockId) {
-		this.logInfo(this.log, "SunSpec-Model [" + sunSpecBlockId + "] is not handled.");
 	}
 
 	@Override

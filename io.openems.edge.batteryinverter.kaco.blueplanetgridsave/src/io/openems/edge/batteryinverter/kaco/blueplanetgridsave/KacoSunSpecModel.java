@@ -869,9 +869,37 @@ public enum KacoSunSpecModel implements ISunSpecModel {
 				AccessMode.READ_WRITE, //
 				Unit.NONE, //
 				null, //
-				new OptionsEnum[0])), //
-
+				S64202_EnLimit.values())), //
 		; //
+
+		public static enum S64202_EnLimit implements OptionsEnum {
+			UNDEFINED(-1, "Undefined"), //
+			NO_ACTIVATE(0, "No Activate"), //
+			ACTIVATE(1, "Activate"); //
+
+			private final int value;
+			private final String name;
+
+			private S64202_EnLimit(int value, String name) {
+				this.value = value;
+				this.name = name;
+			}
+
+			@Override
+			public int getValue() {
+				return value;
+			}
+
+			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public OptionsEnum getUndefined() {
+				return UNDEFINED;
+			}
+		}
 
 		protected final PointImpl impl;
 

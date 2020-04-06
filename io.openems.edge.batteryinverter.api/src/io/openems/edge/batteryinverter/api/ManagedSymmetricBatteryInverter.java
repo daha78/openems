@@ -10,6 +10,33 @@ import io.openems.edge.common.modbusslave.ModbusSlaveNatureTable;
 @ProviderType
 public interface ManagedSymmetricBatteryInverter extends SymmetricBatteryInverter {
 
+	public static class BatteryInverterData {
+		public final Integer soc;
+		public final Integer soh;
+		public final Integer maxCellTemperature;
+		public final Integer dischargeMinVoltage;
+		public final Integer chargeMaxVoltage;
+		public final Integer dischargeMaxCurrent;
+		public final Integer chargeMaxCurrent;
+		public final Integer setActivePower;
+		public final Integer setReactivePower;
+
+		public BatteryInverterData(Integer soc, Integer soh, Integer maxCellTemperature, Integer dischargeMinVoltage,
+				Integer chargeMaxVoltage, Integer dischargeMaxCurrent, Integer chargeMaxCurrent, Integer setActivePower,
+				Integer setReactivePower) {
+			this.soc = soc;
+			this.soh = soh;
+			this.maxCellTemperature = maxCellTemperature;
+			this.dischargeMinVoltage = dischargeMinVoltage;
+			this.chargeMaxVoltage = chargeMaxVoltage;
+			this.dischargeMaxCurrent = dischargeMaxCurrent;
+			this.chargeMaxCurrent = chargeMaxCurrent;
+			this.setActivePower = setActivePower;
+			this.setReactivePower = setReactivePower;
+		}
+
+	}
+
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 		;
 
@@ -30,20 +57,12 @@ public interface ManagedSymmetricBatteryInverter extends SymmetricBatteryInverte
 	}
 
 	/**
-	 * Apply the calculated Power.
+	 * Apply the {@link BatteryInverterData}.
 	 * 
-	 * <p>
-	 * Careful: do not adjust activePower and reactivePower in this method, e.g.
-	 * setting it to zero on error. The purpose of this method is solely to apply
-	 * the calculated power to the ESS. If you need to constrain the allowed power,
-	 * add Constraints using the {@link #getStaticConstraints()} method.
-	 * 
-	 * @param activePower   the active power in [W]
-	 * @param reactivePower the reactive power in [var]
-	 * @throws OpenemsNamedException on error; causes activation of
-	 *                               APPLY_POWER_FAILED StateChannel
+	 * @param data the {@link BatteryInverterData}
+	 * @throws OpenemsNamedException on error
 	 */
-	public void applyPower(int activePower, int reactivePower) throws OpenemsNamedException;
+	public void apply(BatteryInverterData data) throws OpenemsNamedException;
 
 	/**
 	 * Gets the smallest positive power that can be set (in W, VA or var). Example:

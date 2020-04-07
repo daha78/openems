@@ -42,6 +42,9 @@ import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.cycle.Cycle;
 import io.openems.edge.common.sum.GridMode;
 import io.openems.edge.common.taskmanager.Priority;
+import io.openems.edge.ess.power.api.Phase;
+import io.openems.edge.ess.power.api.Pwr;
+import io.openems.edge.ess.power.api.Relationship;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(//
@@ -120,6 +123,48 @@ public class KacoBlueplanetGridsave extends AbstractSunSpecBatteryInverter
 	@Deactivate
 	protected void deactivate() {
 		super.deactivate();
+	}
+
+	/**
+	 * Static Constraints: allow power set-points only on certain States of the
+	 * Inverter.
+	 */
+	@Override
+	public BatteryInverterConstraint[] getStaticConstraints() throws OpenemsException {
+		BatteryInverterConstraint noReactivePower = new BatteryInverterConstraint("Reactive power is not allowed",
+				Phase.ALL, Pwr.REACTIVE, Relationship.EQUALS, 0d);
+
+		S64201_CurrentState currentState = this.getCurrentState();
+		switch (currentState) {
+		case FAULT:
+		case GRID_PRE_CONNECTED:
+		case MPPT:
+		case NO_ERROR_PENDING:
+		case OFF:
+		case PRECHARGE:
+		case SHUTTING_DOWN:
+		case SLEEPING:
+		case STANDBY:
+		case STARTING:
+		case UNDEFINED:
+			// Block any power as long as we are not in the correct states
+			return new BatteryInverterConstraint[] { //
+					noReactivePower, //
+					new BatteryInverterConstraint("KACO inverter not ready", Phase.ALL, Pwr.ACTIVE, Relationship.EQUALS,
+							0d) //
+			};
+		case GRID_CONNECTED:
+		case THROTTLED:
+			// if inverter is throttled, maybe full power is not reachable, but the device
+			// is still working
+			return new BatteryInverterConstraint[] { //
+					noReactivePower //
+			};
+		}
+
+		// should never happen
+		assert (true);
+		return BatteryInverterConstraint.NO_CONSTRAINTS;
 	}
 
 	@Override
@@ -295,51 +340,21 @@ public class KacoBlueplanetGridsave extends AbstractSunSpecBatteryInverter
 	}
 
 	/**
-	 * Sets the Max-Apparent-Power. Is also used to block any Set-Points by setting
-	 * max apparent power to zero.
+	 * Sets the Max-Apparent-Power.
 	 * 
 	 * @throws OpenemsException on error
 	 */
 	private void setMaxApparentPower() throws OpenemsException {
-		Integer maxApparentPower = this.calculateMaxApparentPower();
+		Optional<IntegerReadChannel> wMaxChannel = this.getSunSpecChannel(SunSpecModel.S121.W_MAX);
+		Integer maxApparentPower;
+		if (wMaxChannel.isPresent()) {
+			maxApparentPower = wMaxChannel.get().value().get();
+		} else {
+			maxApparentPower = null;
+		}
 		IntegerReadChannel maxApparentPowerChannel = this
 				.channel(SymmetricBatteryInverter.ChannelId.MAX_APPARENT_POWER);
 		maxApparentPowerChannel.setNextValue(maxApparentPower);
-	}
-
-	/**
-	 * Calculates the Max-Apparent-Power. Is also used to block any Set-Points by
-	 * setting max apparent power to zero.
-	 */
-	private Integer calculateMaxApparentPower() {
-		S64201_CurrentState currentState = this.getCurrentState();
-		switch (currentState) {
-		case FAULT:
-		case GRID_PRE_CONNECTED:
-		case MPPT:
-		case NO_ERROR_PENDING:
-		case OFF:
-		case PRECHARGE:
-		case SHUTTING_DOWN:
-		case SLEEPING:
-		case STANDBY:
-		case STARTING:
-		case UNDEFINED:
-			// Block any power as long as we are not in the correct states
-			return 0;
-		case GRID_CONNECTED:
-		case THROTTLED:
-			// if inverter is throttled, maybe full power is not reachable, but the device
-			// is still working
-			break;
-		}
-		// Get Max-Apparent-Power from
-		Optional<IntegerReadChannel> wMaxChannel = this.getSunSpecChannel(SunSpecModel.S121.W_MAX);
-		if (!wMaxChannel.isPresent()) {
-			// Channel is not available
-			return 0;
-		}
-		return wMaxChannel.get().value().get();
 	}
 
 	/**

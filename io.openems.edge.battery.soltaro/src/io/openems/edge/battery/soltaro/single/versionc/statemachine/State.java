@@ -4,9 +4,9 @@ import com.google.common.base.CaseFormat;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.types.OptionsEnum;
-import io.openems.edge.battery.soltaro.single.versionc.statemachine.StateMachine.Context;
+import io.openems.edge.common.statemachine.StateHandler;
 
-public enum State implements OptionsEnum {
+public enum State implements io.openems.edge.common.statemachine.State<State, Context> {
 	UNDEFINED(-1, new Undefined()), //
 
 	GO_RUNNING(10, new GoRunning()), //
@@ -45,9 +45,9 @@ public enum State implements OptionsEnum {
 	}
 
 	private final int value;
-	protected final Handler handler;
+	protected final StateHandler<State, Context> handler;
 
-	private State(int value, Handler handler) {
+	private State(int value, StateHandler<State, Context> handler) {
 		this.value = value;
 		this.handler = handler;
 	}
@@ -58,40 +58,18 @@ public enum State implements OptionsEnum {
 	}
 
 	@Override
+	public StateHandler<State, Context> getHandler() {
+		return this.handler;
+	}
+
+	@Override
 	public String getName() {
 		return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.name());
-	}
-
-	/*
-	 * Map Handler methods to enum for fluent access.
-	 */
-
-	/**
-	 * Holds the main logic of StateMachine State.
-	 * 
-	 * @param context the {@link Context}
-	 * @return the next State
-	 */
-	protected State getNextState(Context context) throws OpenemsNamedException {
-		return this.handler.getNextState(context);
-	}
-
-	/**
-	 * Gets called before the StateMachine changes from another State to this State.
-	 */
-	protected void onEntry(Context context) throws OpenemsNamedException {
-		this.handler.onEntry(context);
-	}
-
-	/**
-	 * Gets called after the StateMachine changes from this State to another State.
-	 */
-	protected void onExit(Context context) throws OpenemsNamedException {
-		this.handler.onExit(context);
 	}
 
 	@Override
 	public OptionsEnum getUndefined() {
 		return UNDEFINED;
 	}
+
 }

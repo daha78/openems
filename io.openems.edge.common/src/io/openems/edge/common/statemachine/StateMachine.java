@@ -1,39 +1,25 @@
-package io.openems.edge.battery.soltaro.single.versionc.statemachine;
+package io.openems.edge.common.statemachine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
-import io.openems.edge.battery.soltaro.single.versionc.Config;
-import io.openems.edge.battery.soltaro.single.versionc.SingleRackVersionC;
 
 /**
  * Manages the States of the StateMachine.
  */
-// TODO convert to abstract, reusable class
-public class StateMachine {
-
-	public static class Context {
-		protected final SingleRackVersionC component;
-		protected final Config config;
-
-		public Context(SingleRackVersionC component, Config config) {
-			super();
-			this.component = component;
-			this.config = config;
-		}
-	}
+public class StateMachine<O extends State<O, C>, C> {
 
 	private final Logger log = LoggerFactory.getLogger(StateMachine.class);
 
-	private State state = State.UNDEFINED;
+	private O state;
 
 	/**
-	 * Gets the currently activate {@link State}.
+	 * Gets the currently activate State.
 	 * 
 	 * @return the State
 	 */
-	public State getCurrentState() {
+	public O getCurrentState() {
 		return this.state;
 	}
 
@@ -42,15 +28,15 @@ public class StateMachine {
 	 * 
 	 * @throws OpenemsNamedException on error
 	 */
-	public void run(Context context) throws OpenemsNamedException {
+	public void run(C context) throws OpenemsNamedException {
 		// Keep last State
-		State lastState = this.state;
+		O lastState = this.state;
 
 		OpenemsNamedException exception = null;
 
 		// Call the State Handler and receive next State.
 		try {
-			this.state = this.state.getNextState(context);
+			this.state = this.state.getHandler().getNextState(context);
 		} catch (OpenemsNamedException e) {
 			exception = e;
 		}
@@ -61,7 +47,7 @@ public class StateMachine {
 
 			// On-Exit of the last State
 			try {
-				lastState.onExit(context);
+				lastState.getHandler().onExit(context);
 			} catch (OpenemsNamedException e) {
 				if (exception != null) {
 					e.addSuppressed(exception);
@@ -71,7 +57,7 @@ public class StateMachine {
 
 			// On-Entry of next State
 			try {
-				this.state.onEntry(context);
+				this.state.getHandler().onEntry(context);
 			} catch (OpenemsNamedException e) {
 				if (exception != null) {
 					e.addSuppressed(exception);
